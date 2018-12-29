@@ -33,6 +33,15 @@ namespace DutchTreat.Data
                 var products = JsonConvert.DeserializeObject<IEnumerable<Product>>(json);
                 _context.Products.AddRange(products);
 
+                _context.Orders.Add(new Order
+                {
+                    OrderNumber = "12345",
+                    OrderDate = DateTime.UtcNow,
+                    Id = 1
+                });
+
+                _context.SaveChanges();
+
                 var order = _context.Orders.Where(o => o.Id == 1).FirstOrDefault();
                 if (order != null)
                 {
