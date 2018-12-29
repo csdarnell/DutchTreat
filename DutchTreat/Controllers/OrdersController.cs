@@ -1,4 +1,5 @@
-﻿using DutchTreat.Data;
+﻿using AutoMapper;
+using DutchTreat.Data;
 using DutchTreat.Data.Entities;
 using DutchTreat.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +15,15 @@ namespace DutchTreat.Controllers
     [Route("api/[Controller]")]
     public class OrdersController : Controller
     {
-        private readonly IDutchRepository repository;
-        private readonly ILogger<OrdersController> logger;
+        private readonly IDutchRepository _repository;
+        private readonly ILogger<OrdersController> _logger;
+        private readonly IMapper _mapper;
 
-        public OrdersController(IDutchRepository repository, ILogger<OrdersController> logger)
+        public OrdersController(IDutchRepository repository, ILogger<OrdersController> logger, IMapper mapper)
         {
-            this.repository = repository;
-            this.logger = logger;
+            this._repository = repository;
+            this._logger = logger;
+            this._mapper = mapper;
         }
         
         [HttpGet]
@@ -28,12 +31,12 @@ namespace DutchTreat.Controllers
         {
             try
             {
-                return Ok(repository.GetAllOrders());
+                return Ok(_repository.GetAllOrders());
 
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to get orders: {ex}");
+                _logger.LogError($"Failed to get orders: {ex}");
                 return BadRequest("Failed to get orders.");
             }
         }
@@ -43,16 +46,16 @@ namespace DutchTreat.Controllers
         {
             try
             {
-                var order = repository.GetOrderByIds(id);
+                var order = _repository.GetOrderByIds(id);
                 if (order != null)
-                    return Ok(order);
+                    return Ok(_mapper.Map<Order, OrderViewModel>(order));
                 else
                     return NotFound();
 
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to get orders: {ex}");
+                _logger.LogError($"Failed to get orders: {ex}");
                 return BadRequest("Failed to get orders.");
             }
         }
@@ -76,8 +79,8 @@ namespace DutchTreat.Controllers
                         newOrder.OrderDate = DateTime.Now;
                     }
 
-                    repository.AddEntity(newOrder);
-                    if (repository.SaveAll())
+                    _repository.AddEntity(newOrder);
+                    if (_repository.SaveAll())
                     {
                         var vm = new OrderViewModel()
                         {
@@ -95,7 +98,7 @@ namespace DutchTreat.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to save a new order: {ex}");
+                _logger.LogError($"Failed to save a new order: {ex}");
             }
             return BadRequest("Failed to save new order");
         }
