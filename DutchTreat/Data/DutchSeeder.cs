@@ -56,8 +56,7 @@ namespace DutchTreat.Data
                 _context.Orders.Add(new Order
                 {
                     OrderNumber = "12345",
-                    OrderDate = DateTime.UtcNow,
-                    Id = 1
+                    OrderDate = DateTime.UtcNow
                 });
 
                 _context.SaveChanges();
