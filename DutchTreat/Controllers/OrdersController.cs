@@ -27,11 +27,12 @@ namespace DutchTreat.Controllers
         }
         
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Get(bool includeItems = true)
         {
             try
             {
-                return Ok(_repository.GetAllOrders());
+                var results = _repository.GetAllOrders(includeItems);
+                return Ok(_mapper.Map<IEnumerable<Order>, IEnumerable<OrderViewModel>>(results));
 
             }
             catch (Exception ex)
@@ -46,7 +47,7 @@ namespace DutchTreat.Controllers
         {
             try
             {
-                var order = _repository.GetOrderByIds(id);
+                var order = _repository.GetOrderById(id);
                 if (order != null)
                     return Ok(_mapper.Map<Order, OrderViewModel>(order));
                 else
@@ -67,12 +68,7 @@ namespace DutchTreat.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var newOrder = new Order()
-                    {
-                        OrderDate = model.OrderDate,
-                        OrderNumber = model.OrderNumber,
-                        Id = model.OrderId
-                    };
+                    var newOrder = _mapper.Map<OrderViewModel, Order>(model);
 
                     if (newOrder.OrderDate == DateTime.MinValue)
                     {
@@ -82,13 +78,7 @@ namespace DutchTreat.Controllers
                     _repository.AddEntity(newOrder);
                     if (_repository.SaveAll())
                     {
-                        var vm = new OrderViewModel()
-                        {
-                            OrderId = newOrder.Id,
-                            OrderDate = newOrder.OrderDate,
-                            OrderNumber = newOrder.OrderNumber
-                        };
-                        return Created($"/api/orders/{vm.OrderId}", vm);
+                        return Created($"/api/orders/{newOrder.Id}", _mapper.Map<Order, OrderViewModel>(newOrder));
                     }
                 }
                 else
